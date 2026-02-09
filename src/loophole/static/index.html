@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LoopHole - Dictation</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>LoopHole</h1>
+      <p class="subtitle">Local Dictation with Parakeet v3</p>
+    </header>
+
+    <main>
+      <section class="controls">
+        <div class="control-group">
+          <label for="mic-select">Microphone:</label>
+          <select id="mic-select" aria-label="Select microphone">
+            <option value="">Loading devices...</option>
+          </select>
+        </div>
+
+        <div class="button-group">
+          <button id="record-btn" class="btn btn-primary" disabled>
+            Start Recording
+          </button>
+          <button id="clear-btn" class="btn btn-secondary">
+            Clear
+          </button>
+        </div>
+
+        <div id="status" class="status status-idle">
+          Loading model...
+        </div>
+      </section>
+
+      <section class="transcript-section">
+        <label for="transcript">Transcript:</label>
+        <textarea id="transcript" readonly placeholder="Transcribed text will appear here..."></textarea>
+      </section>
+    </main>
+
+    <footer>
+      <p>Press <kbd>Space</kbd> to toggle recording</p>
+    </footer>
+  </div>
+
+  <script type="module" src="dist/app.js"></script>
+</body>
+</html>

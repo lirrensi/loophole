@@ -1,0 +1,13 @@
+[project]
+name = "loophole"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pyaudio>=0.2.14",
+    "pywebview>=4.0",
+    "soundfile>=0.12",
+    "scipy>=1.10",
+    "nemo_toolkit[asr]>=1.23",
+]

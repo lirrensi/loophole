@@ -1,0 +1,1 @@
+# LoopHole - Local Dictation App
