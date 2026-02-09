@@ -7,19 +7,12 @@ import numpy as np
 import torch
 
 
-class _SegmentInternal(TypedDict):
-    """Internal segment with position info."""
-
-    audio: np.ndarray
-    new_paragraph: bool
-    end_position: int  # Sample index for buffer trimming
-
-
 class SegmentToTranscribe(TypedDict):
-    """A complete segment ready for transcription (returned to API)."""
+    """A complete segment ready for transcription."""
 
     audio: np.ndarray
     new_paragraph: bool
+    end_position: int  # Sample index for buffer trimming (internal use)
 
 
 class TranscriptionResult(TypedDict):
@@ -57,20 +50,20 @@ class TranscriberWithVAD:
         # Load Parakeet v3 via NeMo
         import nemo.collections.asr as nemo_asr
 
-        self.model = nemo_asr.models.ASRModel.from_pretrained(
+        self.model = nemo_asr.models.ASRModel.from_pretrained(  # type: ignore[union-attr]
             model_name="nvidia/parakeet-tdt-0.6b-v3"
         )
-        self.model.eval()
+        self.model.eval()  # type: ignore[union-attr]
 
         # Load Silero VAD
-        self.vad_model, utils = torch.hub.load(
+        self.vad_model, utils = torch.hub.load(  # type: ignore[misc]
             repo_or_dir="snakers4/silero-vad",
             model="silero_vad",
             force_reload=False,
             onnx=False,
         )
-        self.vad_model.eval()
-        self.get_speech_timestamps = utils[0]
+        self.vad_model.eval()  # type: ignore[union-attr]
+        self.get_speech_timestamps = utils[0]  # type: ignore[index]
 
         self._loaded = True
 
@@ -130,7 +123,7 @@ class TranscriberWithVAD:
 
         with self._transcribe_lock:
             with torch.no_grad():
-                results = self.model.transcribe([audio_tensor.numpy()], batch_size=1)
+                results = self.model.transcribe([audio_tensor.numpy()], batch_size=1)  # type: ignore[union-attr]
 
         if results:
             return results[0].text if hasattr(results[0], "text") else str(results[0])
@@ -149,7 +142,7 @@ class TranscriberWithVAD:
             audio = audio / 32768.0
         return audio
 
-    def _find_complete_segments(self) -> list[_SegmentInternal]:
+    def _find_complete_segments(self) -> list[SegmentToTranscribe]:
         """
         Find speech segments that are "complete" (followed by 2s+ silence).
 

@@ -14,6 +14,7 @@ export interface PyWebViewAPI {
   transcribe_chunk(audioBase64: string, capturedAt: number): Promise<{ status: string }>;
   get_pending_results(): Promise<TranscriptionResult[]>;
   get_status(): Promise<{ model_loaded: boolean }>;
+  reset_buffer(): Promise<{ status: string }>;
 }
 
 declare global {

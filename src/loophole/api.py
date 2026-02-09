@@ -57,8 +57,14 @@ class API:
         print(f"[API] get_pending_results: returning {len(results)} results")
         return results
 
+    def reset_buffer(self) -> dict:
+        """Clear the audio buffer (call when stopping recording)."""
+        self._transcriber.reset_buffer()
+        print("[API] Buffer reset")
+        return {"status": "ok"}
+
     def _process_audio_async(self, audio_base64: str, captured_at: float) -> None:
-        """Background thread: decode, resample, transcribe, queue result."""
+        """Background thread: decode, resample, find complete segments, transcribe."""
         print("[API] Thread started")
         try:
             # Decode base64 to audio array
@@ -70,28 +76,34 @@ class API:
                 audio_array = self._resample(audio_array, sample_rate, 16000)
                 print(f"[API] Resampled to 16kHz")
 
-            # Transcribe
-            transcription = self._transcriber.process_chunk(
-                audio_array, sample_rate=16000
-            )
-            transcribed_at = time.time()
+            # Add to buffer and get complete segments
+            segments = self._transcriber.add_chunk(audio_array)
+            print(f"[API] Got {len(segments)} complete segments")
 
-            # Build result with timestamps for duplex tracking
-            result: dict = {
-                "text": transcription["text"],
-                "new_paragraph": transcription["new_paragraph"],
-                "has_speech": transcription["has_speech"],
-                "captured_at": captured_at,
-                "transcribed_at": transcribed_at,
-                "latency_ms": round((transcribed_at - captured_at) * 1000),
-            }
+            # Transcribe each complete segment
+            for segment in segments:
+                text = self._transcriber.transcribe_segment(segment["audio"])
+                transcribed_at = time.time()
 
-            # Queue result for JS polling
-            with self._queue_lock:
-                self._results_queue.append(result)
-            print(
-                f"[API] Queued result: {result.get('text', '')[:50]}... latency={result['latency_ms']}ms"
-            )
+                if not text.strip():
+                    continue
+
+                # Build result with timestamps
+                result: dict = {
+                    "text": text,
+                    "new_paragraph": segment["new_paragraph"],
+                    "has_speech": True,
+                    "captured_at": captured_at,
+                    "transcribed_at": transcribed_at,
+                    "latency_ms": round((transcribed_at - captured_at) * 1000),
+                }
+
+                # Queue result for JS polling
+                with self._queue_lock:
+                    self._results_queue.append(result)
+                print(
+                    f"[API] Queued result: '{text[:50]}...' latency={result['latency_ms']}ms"
+                )
 
         except Exception as e:
             print(f"Transcription error: {e}")

@@ -232,6 +232,11 @@ function stopRecording(): void {
     pollInterval = null;
   }
   
+  // Reset backend buffer
+  if (window.pywebview?.api) {
+    window.pywebview.api.reset_buffer();
+  }
+  
   // Cleanup audio
   if (workletNode) {
     workletNode.disconnect();
