@@ -16,18 +16,20 @@
 
 ```bash
 # Get the code
-git clone https://github.com/yourusername/loophole.git
+git clone https://github.com/lirrensi/loophole.git
 cd loophole
 
 # Install dependencies
 uv sync
 
 # Build the frontend
-cd src/loophole/static && npm install && npx tsc && cd ../../..
+python build_web.py
 
 # Run it
 uv run python main.py
 ```
+
+**Windows?** Just double-click `run.bat`
 
 **First run?** It'll download the Parakeet model (~1GB). Grab a coffee. ☕
 
@@ -89,6 +91,8 @@ This means no more mid-sentence cutoffs. Your thoughts stay intact.
 ```
 loophole/
 ├── main.py                 # Entry point
+├── build_web.py            # Build frontend
+├── run.bat                 # Windows launcher
 ├── pyproject.toml          # Dependencies
 └── src/loophole/
     ├── api.py              # PyWebView bridge
