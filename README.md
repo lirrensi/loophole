@@ -4,6 +4,8 @@
 
 **LoopHole** is a local dictation app that actually respects your privacy. No cloud, no subscriptions, no "we use your data to improve our services" nonsense. Just you, your microphone, and NVIDIA's Parakeet v3 running entirely on your machine.
 
+![UI](https://github.com/lirrensi/loophole/blob/main/img/UI_1.png?raw=true)
+
 ## ✨ What it does
 
 - 🎤 **Real-time transcription** — speak and watch your words appear
