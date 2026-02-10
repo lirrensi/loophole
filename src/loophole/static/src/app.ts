@@ -24,6 +24,7 @@ let pollInterval: number | null = null;
 const micSelect = document.getElementById('mic-select') as HTMLSelectElement;
 const recordBtn = document.getElementById('record-btn') as HTMLButtonElement;
 const clearBtn = document.getElementById('clear-btn') as HTMLButtonElement;
+const copyBtn = document.getElementById('copy-btn') as HTMLButtonElement;
 const statusEl = document.getElementById('status') as HTMLDivElement;
 const transcriptEl = document.getElementById('transcript') as HTMLTextAreaElement;
 
@@ -404,6 +405,22 @@ function clearTranscript(): void {
   transcriptEl.value = '';
 }
 
+function copyTranscript(): void {
+  const text = transcriptEl.value;
+  if (!text) return;
+
+  navigator.clipboard.writeText(text).then(() => {
+    // Visual feedback
+    const originalText = copyBtn.textContent;
+    copyBtn.textContent = 'Copied!';
+    setTimeout(() => {
+      copyBtn.textContent = originalText;
+    }, 1000);
+  }).catch(err => {
+    console.error('Failed to copy:', err);
+  });
+}
+
 // ============ Event Listeners ============
 
 micSelect.addEventListener('change', () => {
@@ -413,6 +430,8 @@ micSelect.addEventListener('change', () => {
 recordBtn.addEventListener('click', toggleRecording);
 
 clearBtn.addEventListener('click', clearTranscript);
+
+copyBtn.addEventListener('click', copyTranscript);
 
 // Keyboard shortcut: Space to toggle recording
 document.addEventListener('keydown', (event) => {
