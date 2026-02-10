@@ -10,4 +10,5 @@ dependencies = [
     "soundfile>=0.12",
     "scipy>=1.10",
     "nemo_toolkit[asr]>=1.23",
+    "pyperclip>=1.11.0",
 ]

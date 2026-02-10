@@ -409,6 +409,31 @@ function copyTranscript(): void {
   const text = transcriptEl.value;
   if (!text) return;
 
+  // Try pywebview API first (works in pywebview context)
+  if (window.pywebview?.api) {
+    window.pywebview.api.copy_to_clipboard(text).then((result) => {
+      if (result.status === 'ok') {
+        // Visual feedback
+        const originalText = copyBtn.textContent;
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => {
+          copyBtn.textContent = originalText;
+        }, 1000);
+      } else {
+        console.error('Failed to copy via API:', result.error);
+        fallbackCopy(text);
+      }
+    }).catch((err) => {
+      console.error('Copy API error:', err);
+      fallbackCopy(text);
+    });
+  } else {
+    // Fallback to navigator.clipboard for regular browser
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text: string): void {
   navigator.clipboard.writeText(text).then(() => {
     // Visual feedback
     const originalText = copyBtn.textContent;
@@ -416,8 +441,11 @@ function copyTranscript(): void {
     setTimeout(() => {
       copyBtn.textContent = originalText;
     }, 1000);
-  }).catch(err => {
+  }).catch((err) => {
     console.error('Failed to copy:', err);
+    // Last resort: select and copy
+    transcriptEl.select();
+    document.execCommand('copy');
   });
 }
 

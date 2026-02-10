@@ -15,6 +15,7 @@ export interface PyWebViewAPI {
   get_pending_results(): Promise<TranscriptionResult[]>;
   get_status(): Promise<{ model_loaded: boolean }>;
   reset_buffer(): Promise<{ status: string }>;
+  copy_to_clipboard(text: string): Promise<{ status: string; error?: string }>;
 }
 
 declare global {

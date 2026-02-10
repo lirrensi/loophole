@@ -8,6 +8,7 @@ from threading import Lock, Thread
 from typing import TYPE_CHECKING, Optional
 
 import numpy as np
+import pyperclip
 import soundfile as sf
 from scipy import signal
 
@@ -62,6 +63,16 @@ class API:
         self._transcriber.reset_buffer()
         print("[API] Buffer reset")
         return {"status": "ok"}
+
+    def copy_to_clipboard(self, text: str) -> dict:
+        """Copy text to system clipboard."""
+        try:
+            pyperclip.copy(text)
+            print(f"[API] Copied {len(text)} chars to clipboard")
+            return {"status": "ok"}
+        except Exception as e:
+            print(f"[API] Failed to copy: {e}")
+            return {"status": "error", "error": str(e)}
 
     def _process_audio_async(self, audio_base64: str, captured_at: float) -> None:
         """Background thread: decode, resample, find complete segments, transcribe."""
