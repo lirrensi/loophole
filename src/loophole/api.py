@@ -15,7 +15,7 @@ from scipy import signal
 if TYPE_CHECKING:
     import webview
 
-    from .transcriber import TranscriberWithVAD
+    from loophole.transcriber import TranscriberWithVAD
 
 
 class API:

@@ -16,6 +16,20 @@
 
 ## 🚀 Quick Start
 
+### 🌐 Install as CLI tool (recommended)
+
+```bash
+# Using uv (fastest)
+uv tool install git+https://github.com/lirrensi/loophole.git
+
+# Using pipx
+pipx install git+https://github.com/lirrensi/loophole.git
+```
+
+Then run `loophole` from anywhere!
+
+### 🛠️ Local development
+
 ```bash
 # Get the code
 git clone https://github.com/lirrensi/loophole.git
@@ -27,13 +41,20 @@ uv sync
 # Build the frontend
 python build_web.py
 
+# Install editable CLI
+uv pip install -e .
+
 # Run it
-uv run python main.py
+loophole
 ```
 
 **Windows?** Just double-click `run.bat`
 
+**Windows?** Just double-click `run.bat`
+
 **First run?** It'll download the Parakeet model (~1GB). Grab a coffee. ☕
+
+**uv tool/pipx note:** Runs in isolated environment; model cached in `~/.cache/huggingface/`
 
 ## 🎮 How to use
 
