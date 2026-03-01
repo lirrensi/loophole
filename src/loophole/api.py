@@ -64,6 +64,52 @@ class API:
         print("[API] Buffer reset")
         return {"status": "ok"}
 
+    def flush_buffer(self) -> dict:
+        """
+        Flush any remaining audio in buffer, forcing transcription of incomplete segments.
+        Call this when stopping recording to ensure no audio is lost.
+        """
+        print("[API] Flushing buffer, forcing transcription of incomplete segments")
+        # The flush will be done asynchronously - trigger it and return immediately
+        # The segments will be transcribed and queued for polling
+        Thread(
+            target=self._flush_buffer_async,
+            daemon=True,
+        ).start()
+        return {"status": "flushing"}
+
+    def _flush_buffer_async(self) -> None:
+        """Background thread: flush remaining audio and transcribe."""
+        try:
+            segments = self._transcriber.flush()
+            print(f"[API] Flush got {len(segments)} segments")
+
+            for segment in segments:
+                text = self._transcriber.transcribe_segment(segment["audio"])
+                transcribed_at = time.time()
+
+                if not text.strip():
+                    continue
+
+                result: dict = {
+                    "text": text,
+                    "new_paragraph": segment["new_paragraph"],
+                    "has_speech": True,
+                    "captured_at": transcribed_at,  # Use transcribed time for flushed segments
+                    "transcribed_at": transcribed_at,
+                    "latency_ms": 0,  # Unknown for flushed segments
+                }
+
+                with self._queue_lock:
+                    self._results_queue.append(result)
+                print(f"[API] Flushed result: '{text[:50]}...'")
+
+        except Exception as e:
+            print(f"Flush error: {e}")
+            import traceback
+
+            traceback.print_exc()
+
     def copy_to_clipboard(self, text: str) -> dict:
         """Copy text to system clipboard."""
         try:

@@ -41,7 +41,7 @@ class TranscriberWithVAD:
     SAMPLE_RATE = 16000
     SENTENCE_SILENCE_SEC = 2.0  # 2s silence = sentence complete
     PARAGRAPH_SILENCE_SEC = 4.0  # 4s silence = paragraph break
-    MAX_BUFFER_SEC = 30.0  # Safety limit
+    MAX_BUFFER_SEC = 120.0  # 2 minutes - safety limit for rolling buffer
 
     def __init__(self) -> None:
         """Load Parakeet v3 model and Silero VAD."""
@@ -138,6 +138,74 @@ class TranscriberWithVAD:
         """Clear the audio buffer (call when stopping recording)."""
         with self._buffer_lock:
             self._audio_buffer = []
+
+    def flush(self) -> list[SegmentToTranscribe]:
+        """
+        Flush any remaining audio in buffer, forcing transcription of incomplete segments.
+
+        Call this when stopping recording to ensure no audio is lost.
+        Unlike _find_complete_segments(), this returns ALL speech segments regardless
+        of trailing silence duration.
+
+        Returns:
+            List of segments with audio and new_paragraph flag
+        """
+        with self._buffer_lock:
+            if (
+                not self._audio_buffer
+                or len(self._audio_buffer) < self.SAMPLE_RATE * 0.5
+            ):
+                return []
+
+            buffer_tensor = torch.FloatTensor(self._audio_buffer)
+            buffer_duration = len(buffer_tensor) / self.SAMPLE_RATE
+
+            # Run VAD to find speech segments
+            speech_timestamps = self.get_speech_timestamps(
+                buffer_tensor,
+                self.vad_model,
+                sampling_rate=self.SAMPLE_RATE,
+                threshold=0.5,
+                min_silence_duration_ms=2000,
+                min_speech_duration_ms=250,
+            )
+
+            if not speech_timestamps:
+                print(f"[VAD flush] No speech in {buffer_duration:.1f}s buffer")
+                return []
+
+            print(
+                f"[VAD flush] Found {len(speech_timestamps)} speech segments, forcing transcription"
+            )
+
+            # Return ALL segments, not just complete ones
+            segments: list[SegmentToTranscribe] = []
+            for i, segment in enumerate(speech_timestamps):
+                start = segment["start"]
+                end = segment["end"]
+                audio_segment = buffer_tensor[start:end].numpy()
+
+                # Check if there's significant silence after (>4s = paragraph)
+                if i < len(speech_timestamps) - 1:
+                    silence_samples = speech_timestamps[i + 1]["start"] - segment["end"]
+                else:
+                    silence_samples = len(buffer_tensor) - segment["end"]
+
+                is_paragraph = (
+                    silence_samples / self.SAMPLE_RATE
+                ) >= self.PARAGRAPH_SILENCE_SEC
+
+                segments.append(
+                    {
+                        "audio": audio_segment,
+                        "new_paragraph": is_paragraph,
+                        "end_position": end,
+                    }
+                )
+
+            # Clear buffer after flush
+            self._audio_buffer = []
+            return segments
 
     def _normalize_audio(self, audio_array: np.ndarray) -> np.ndarray:
         """Normalize audio to float32 in [-1, 1] range."""

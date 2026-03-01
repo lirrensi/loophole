@@ -136,6 +136,11 @@ async function startRecording(): Promise<void> {
     lastChunkTime = Date.now();
     isRecording = true;
     
+    // Reset backend buffer to ensure clean start (no leftover from previous recording)
+    if (window.pywebview?.api) {
+      window.pywebview.api.reset_buffer();
+    }
+    
     // Start polling for results
     console.log('[JS] Starting polling interval (500ms)');
     pollInterval = window.setInterval(pollResults, 500);
@@ -233,9 +238,9 @@ function stopRecording(): void {
     pollInterval = null;
   }
   
-  // Reset backend buffer
+  // Flush backend buffer (force transcription of any remaining audio)
   if (window.pywebview?.api) {
-    window.pywebview.api.reset_buffer();
+    window.pywebview.api.flush_buffer();
   }
   
   // Cleanup audio
