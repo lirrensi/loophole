@@ -28,7 +28,7 @@ authors = [{name = "LoopHole Team"}]
 urls = {Homepage = "https://github.com/yourusername/loophole"}
 
 [project.scripts]
-loophole = "src.loophole.main:main"
+loophole = "loophole.main:main"
 
 [project.optional-dependencies]
 dev = ["pytest", "black", "mypy"]

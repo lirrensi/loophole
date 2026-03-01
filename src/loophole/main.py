@@ -2,12 +2,8 @@
 
 import argparse
 import sys
+from importlib.resources import files
 from pathlib import Path
-
-# Add project root to path for imports when installed
-project_root = Path(__file__).parent.parent.parent
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
 
 import webview
 
@@ -27,9 +23,13 @@ def main() -> None:
 
     api = API(transcriber)
 
+    # Get static file path using importlib.resources for installed package
+    static_dir = files("loophole").joinpath("static")
+    index_path = Path(str(static_dir.joinpath("index.html")))
+
     window = webview.create_window(
         title="LoopHole",
-        url="src/loophole/static/index.html",
+        url=str(index_path),
         js_api=api,
         width=800,
         height=700,
