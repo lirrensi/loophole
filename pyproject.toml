@@ -11,6 +11,9 @@ dependencies = [
     "scipy>=1.10",
     "nemo_toolkit[asr]>=1.23",
     "pyperclip>=1.11.0",
+    "torchaudio>=2.0,<2.5",
+    "torch>=2.0,<2.5",
+    "onnxruntime",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",

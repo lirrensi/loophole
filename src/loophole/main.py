@@ -1,9 +1,15 @@
 """LoopHole - Local Dictation App entry point."""
 
 import argparse
+import os
 import sys
 from importlib.resources import files
 from pathlib import Path
+
+# Disable torch._dynamo to avoid issues
+os.environ.setdefault("TORCH_COMPILE_DISABLE", "1")
+os.environ.setdefault("PYTORCH_JIT", "0")
+os.environ.setdefault("LIGHTNING_CLOUD_DISABLE", "1")
 
 import webview
 

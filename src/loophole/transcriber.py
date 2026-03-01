@@ -1,7 +1,12 @@
 """Transcription engine with Silero VAD for smart segmentation."""
 
+import os
 from threading import Lock
 from typing import TypedDict
+
+# Disable torch._dynamo before any torch imports (fixes triton.language crash on Windows CPU)
+os.environ.setdefault("TORCH_COMPILE_DISABLE", "1")
+os.environ.setdefault("PYTORCH_JIT", "0")
 
 import numpy as np
 import torch
@@ -55,14 +60,14 @@ class TranscriberWithVAD:
         )
         self.model.eval()  # type: ignore[union-attr]
 
-        # Load Silero VAD
+        # Load Silero VAD (use ONNX to avoid JIT issues)
         self.vad_model, utils = torch.hub.load(  # type: ignore[misc]
             repo_or_dir="snakers4/silero-vad",
             model="silero_vad",
             force_reload=False,
-            onnx=False,
+            onnx=True,
         )
-        self.vad_model.eval()  # type: ignore[union-attr]
+        # ONNX wrapper doesn't have eval() method
         self.get_speech_timestamps = utils[0]  # type: ignore[index]
 
         self._loaded = True
